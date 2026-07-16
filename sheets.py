@@ -11,10 +11,19 @@ SCOPES = [
 ]
 
 def get_sheets_client():
-    # 1. Intentar leer desde las variables de entorno/secretos (Ideal para la Nube)
+    # 1. Intentar leer desde Streamlit Secrets (Ideal para la Nube)
+    import streamlit as st
+    import json
+    
+    if "GOOGLE_CREDENTIALS_JSON" in st.secrets:
+        google_json_string = st.secrets["GOOGLE_CREDENTIALS_JSON"]
+        creds_dict = json.loads(google_json_string)
+        credentials = Credentials.from_service_account_info(creds_dict, scopes=SCOPES)
+        return gspread.authorize(credentials)
+        
+    # 2. Si no está en secretos, intentar variable de entorno (Local/Legacy)
     google_json_string = os.getenv("GOOGLE_CREDENTIALS_JSON")
     if google_json_string:
-        import json
         creds_dict = json.loads(google_json_string)
         credentials = Credentials.from_service_account_info(creds_dict, scopes=SCOPES)
         return gspread.authorize(credentials)
